@@ -1,0 +1,1 @@
+from clean_comments.cli import rewrite_file
