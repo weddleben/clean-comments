@@ -6,7 +6,11 @@ readme = "README.md"
 authors = [{name = "Ben Weddle", email = "ben.weddle@gmail.com"}]
 maintainers = [{name = "Ben Weddle", email = "ben.weddle@gmail.com"}]
 requires-python = ">=3.10"
-dependencies = ["regex"]
+dependencies = [
+"regex",
+"pytest",
+"ruff"
+]
 
 [project.urls]
 Repository = "https://pointlessapi.com"
