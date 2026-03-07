@@ -1,82 +1,114 @@
 import subprocess
-import sys
 import tokenize
 from tokenize import TokenInfo
 import regex
 from pathlib import Path
 
+from pydantic import BaseModel, Field
+
 grapheme_pattern = regex.compile(r"\X", regex.UNICODE)
 emoji_pattern = regex.compile(r"\p{Extended_Pictographic}")
 
+class Cleany(BaseModel):
 
-def replace_emojis_in_comment(text: TokenInfo, replacement: str = "") -> str:
-    graphemes = grapheme_pattern.findall(text.string)
-    new_parts = []
-    global total_removed
-    for g in graphemes:
-        if emoji_pattern.search(g):
-            new_parts.append(replacement)
-            print(f"removing {g} from line {text.start[0]}")
-        else:
-            new_parts.append(g)
-    return "".join(new_parts)
+    path: Path
+    ignore_dir: list = Field(default_factory=list)
+    ignore_file: list = Field(default_factory=list)
+    nuke: bool = False
+    emoji: bool = False
+    list_of_files: list[Path] = Field(default_factory=list)
+
+    def model_post_init(self, __context):
+        self.list_of_files = self.create_list_of_files()
+
+    def main_loop(self):
+        if len(self.list_of_files) == 0:
+            return print(f"no files found in {self.path}")
+        for file in self.list_of_files:
+            if self.nuke:
+                self.nuke_comments(file)
+            if self.emoji:
+                self.remove_emojis(file)
+
+    def create_list_of_files(self) -> list[Path]:
+        list_of_files: list = []
+        for file in self.path.rglob("*.py"):
+            if any(part in self.ignore_dir for part in file.parent.parts):
+                continue
+            if any(str(file).endswith(to_ignore) for to_ignore in self.ignore_file):
+                continue
+            else:
+                list_of_files.append(file)
+        return list_of_files
+
+    def replace_emojis_in_comment(self, text: TokenInfo, replacement: str = "") -> str:
+        graphemes = grapheme_pattern.findall(text.string)
+        new_parts = []
+        total_removed: int = 0
+        for g in graphemes:
+            if emoji_pattern.search(g):
+                new_parts.append(replacement)
+                print(f"removing {g} from line {text.start[0]}")
+            else:
+                new_parts.append(g)
+        return "".join(new_parts)
 
 
-def nuke_comments(path: Path):
-    print(f"----- scanning comments in {path} -----")
-    total_removed: int = 0
-    with open(path, "rb") as f:
-        tokens = list(tokenize.tokenize(f.readline))
+    def nuke_comments(self, path: Path):
+        print(f"----- scanning comments in {path} -----")
+        total_removed: int = 0
+        with open(path, "rb") as f:
+            tokens = list(tokenize.tokenize(f.readline))
 
-    new_tokens = []
+        new_tokens = []
 
-    for token in tokens:
-        if token.type == tokenize.COMMENT:
-            print(f"removing comment from line {token.start[0]} of {path}")
-            total_removed += 1
-            pass
-        else:
+        for token in tokens:
+            if token.type == tokenize.COMMENT:
+                print(f"removing comment from line {token.start[0]} of {path}")
+                total_removed += 1
+                pass
+            else:
+                new_tokens.append(token)
+
+        if tokens == new_tokens:
+            print(f"----- no comments found in {path} -----")
+            print()
+            return
+
+        print(f"removed {total_removed} comments from {path}")
+        new_source = tokenize.untokenize(new_tokens)
+        path.write_bytes(new_source)
+        self.run_ruff(path=path)
+
+
+    def run_ruff(self, path: Path):
+        subprocess.run(["ruff", "format", "--silent", str(path)], check=True)
+
+
+    def remove_emojis(self, path: Path):
+        print(f"----- scanning comments in {path} -----")
+        with open(path, "rb") as f:
+            tokens = list(tokenize.tokenize(f.readline))
+
+        new_tokens = []
+
+        for token in tokens:
+            if token.type == tokenize.COMMENT:
+                new_comment = self.replace_emojis_in_comment(token)
+                token = tokenize.TokenInfo(
+                    token.type,
+                    new_comment,
+                    token.start,
+                    token.end,
+                    token.line,
+                )
             new_tokens.append(token)
 
-    if tokens == new_tokens:
-        print(f"----- no comments found in {path} -----")
-        print()
-        return
+        if tokens == new_tokens:
+            print(f"----- no emojis found in {path} -----")
+            print()
+            return
 
-    print(f"removed {total_removed} comments from {path}")
-    new_source = tokenize.untokenize(new_tokens)
-    path.write_bytes(new_source)
-    run_ruff(path=path)
-
-
-def run_ruff(path: Path):
-    subprocess.run(["ruff", "format", "--silent", str(path)], check=True)
-
-
-def remove_emojis(path: Path):
-    print(f"----- scanning comments in {path} -----")
-    with open(path, "rb") as f:
-        tokens = list(tokenize.tokenize(f.readline))
-
-    new_tokens = []
-
-    for token in tokens:
-        if token.type == tokenize.COMMENT:
-            new_comment = replace_emojis_in_comment(token)
-            token = tokenize.TokenInfo(
-                token.type,
-                new_comment,
-                token.start,
-                token.end,
-                token.line,
-            )
-        new_tokens.append(token)
-
-    if tokens == new_tokens:
-        print(f"----- no emojis found in {path} -----")
-        print()
-        return
-
-    new_source = tokenize.untokenize(new_tokens)
-    path.write_bytes(new_source)
-    run_ruff(path=path)
+        new_source = tokenize.untokenize(new_tokens)
+        path.write_bytes(new_source)
+        self.run_ruff(path=path)
