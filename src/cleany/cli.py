@@ -40,8 +40,8 @@ def parse_args():
 def main():
     args = parse_args()
 
-    # if len(sys.argv) == 1:
-    #     return print("cleany -h for help")
+    if len(sys.argv) == 1:
+        return print("cleany -h for help")
     
     ignore_dir = ["venv", "tests"]
 
