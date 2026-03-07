@@ -44,7 +44,6 @@ def main():
         return print("cleany -h for help")
     
     ignore_dir = ["venv", "tests"]
-
     for ignored in args.ignore_dir:
         ignore_dir.append(ignored)
 
