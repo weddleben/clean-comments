@@ -47,19 +47,6 @@ class Cleany(BaseModel):
                 list_of_files.append(file)
         return list_of_files
 
-    def replace_emojis_in_comment(self, text: TokenInfo, replacement: str = "") -> str:
-        graphemes = grapheme_pattern.findall(text.string)
-        new_parts = []
-        for g in graphemes:
-            if emoji_pattern.search(g):
-                new_parts.append(replacement)
-                print(f"removing {g} from line {text.start[0]}")
-                self.total_emojis_removed += 1
-            else:
-                new_parts.append(g)
-        return "".join(new_parts)
-
-
     def nuke_comments(self, path: Path):
         print(f"----- scanning comments in {path} -----")
         total_removed: int = 0
@@ -85,11 +72,6 @@ class Cleany(BaseModel):
         new_source = tokenize.untokenize(new_tokens)
         path.write_bytes(new_source)
         self.run_ruff(path=path)
-
-
-    def run_ruff(self, path: Path):
-        subprocess.run(["ruff", "format", "--silent", str(path)], check=True)
-
 
     def remove_emojis(self, path: Path):
         print(f"----- scanning comments in {path} -----")
@@ -118,3 +100,18 @@ class Cleany(BaseModel):
         new_source = tokenize.untokenize(new_tokens)
         path.write_bytes(new_source)
         self.run_ruff(path=path)
+
+    def replace_emojis_in_comment(self, text: TokenInfo, replacement: str = "") -> str:
+        graphemes = grapheme_pattern.findall(text.string)
+        new_parts = []
+        for g in graphemes:
+            if emoji_pattern.search(g):
+                new_parts.append(replacement)
+                print(f"removing {g} from line {text.start[0]}")
+                self.total_emojis_removed += 1
+            else:
+                new_parts.append(g)
+        return "".join(new_parts)
+    
+    def run_ruff(self, path: Path):
+        subprocess.run(["ruff", "format", "--silent", str(path)], check=True)
