@@ -17,6 +17,7 @@ class Cleany(BaseModel):
     nuke: bool = False
     emoji: bool = False
     list_of_files: list[Path] = Field(default_factory=list)
+    total_emojis_removed: int = 0
 
     def model_post_init(self, __context):
         self.list_of_files = self.create_list_of_files()
@@ -33,6 +34,7 @@ class Cleany(BaseModel):
                 self.nuke_comments(file)
             if self.emoji:
                 self.remove_emojis(file)
+                print(f"removed {self.total_emojis_removed} emojis")
 
     def create_list_of_files(self) -> list[Path]:
         list_of_files: list = []
@@ -48,11 +50,11 @@ class Cleany(BaseModel):
     def replace_emojis_in_comment(self, text: TokenInfo, replacement: str = "") -> str:
         graphemes = grapheme_pattern.findall(text.string)
         new_parts = []
-        total_removed: int = 0
         for g in graphemes:
             if emoji_pattern.search(g):
                 new_parts.append(replacement)
                 print(f"removing {g} from line {text.start[0]}")
+                self.total_emojis_removed += 1
             else:
                 new_parts.append(g)
         return "".join(new_parts)
