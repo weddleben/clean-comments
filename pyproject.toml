@@ -10,7 +10,8 @@ requires-python = ">=3.10"
 dependencies = [
 "regex",
 "pytest",
-"ruff"
+"ruff",
+"pydantic"
 ]
 
 [project.urls]
