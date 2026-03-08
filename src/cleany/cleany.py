@@ -28,8 +28,6 @@ class Cleany(BaseModel):
             return print(f"cannot find matchign directory: {self.path}")
         if len(self.list_of_files) == 0:
             return print(f"no files found in {self.path}")
-        if len(self.list_of_files) == 0:
-            return print(f"no files found in {self.path}")
         for file in self.list_of_files:
             if self.nuke:
                 self.nuke_comments(file)
