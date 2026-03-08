@@ -16,6 +16,7 @@ class Cleany(BaseModel):
     ignore_file: list = Field(default_factory=list)
     nuke: bool = False
     emoji: bool = False
+    quiet: bool = False
     list_of_files: list[Path] = Field(default_factory=list)
     total_emojis_removed: int = 0
 
@@ -48,7 +49,7 @@ class Cleany(BaseModel):
         return list_of_files
 
     def nuke_comments(self, path: Path):
-        print(f"----- scanning comments in {path} -----")
+        self.print_to_screen(f"----- scanning comments in {path} -----")
         total_removed: int = 0
         with open(path, "rb") as f:
             tokens = list(tokenize.tokenize(f.readline))
@@ -57,24 +58,24 @@ class Cleany(BaseModel):
 
         for token in tokens:
             if token.type == tokenize.COMMENT:
-                print(f"removing comment from line {token.start[0]} of {path}")
+                self.print_to_screen(f"removing comment from line {token.start[0]} of {path}")
                 total_removed += 1
                 pass
             else:
                 new_tokens.append(token)
 
         if tokens == new_tokens:
-            print(f"----- no comments found in {path} -----")
-            print()
+            self.print_to_screen(f"----- no comments found in {path} -----")
+            self.print_to_screen(statement="")
             return
 
-        print(f"removed {total_removed} comments from {path}")
+        self.print_to_screen(f"removed {total_removed} comments from {path}")
         new_source = tokenize.untokenize(new_tokens)
         path.write_bytes(new_source)
         self.run_ruff(path=path)
 
     def remove_emojis(self, path: Path):
-        print(f"----- scanning comments in {path} -----")
+        self.print_to_screen(f"----- scanning comments in {path} -----")
         with open(path, "rb") as f:
             tokens = list(tokenize.tokenize(f.readline))
 
@@ -93,8 +94,8 @@ class Cleany(BaseModel):
             new_tokens.append(token)
 
         if tokens == new_tokens:
-            print(f"----- no emojis found in {path} -----")
-            print()
+            self.print_to_screen(f"----- no emojis found in {path} -----")
+            self.print_to_screen(statement="")
             return
 
         new_source = tokenize.untokenize(new_tokens)
@@ -107,7 +108,7 @@ class Cleany(BaseModel):
         for g in graphemes:
             if emoji_pattern.search(g):
                 new_parts.append(replacement)
-                print(f"removing {g} from line {text.start[0]}")
+                self.print_to_screen(f"removing {g} from line {text.start[0]}")
                 self.total_emojis_removed += 1
             else:
                 new_parts.append(g)
@@ -115,3 +116,7 @@ class Cleany(BaseModel):
     
     def run_ruff(self, path: Path):
         subprocess.run(["ruff", "format", "--silent", str(path)], check=True)
+
+    def print_to_screen(self, statement):
+        if not self.quiet:
+            print(statement)

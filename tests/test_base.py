@@ -38,6 +38,11 @@ def test_init_7(tmp_path):
     output = subprocess.run(["cleany", "--path", tmp_path, "--nuke"], capture_output=True)
     assert "no files found in" in str(output.stdout)
 
+def test_quiet():
+    output = subprocess.run(["cleany", "--nuke", "--quiet"], capture_output=True)
+    output = str(output.stdout).strip("b''")
+    assert len(str(output)) == 0
+
 def test_remove_emojis_1(tmp_path):
     pre = Path("tests/fixtures/pre-clean-emojis.py")
     post = Path("tests/fixtures/post-clean-emojis.py")

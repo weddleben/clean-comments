@@ -34,6 +34,11 @@ def parse_args():
         action="store_true", 
         help="Removes emojis"
     )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="surpress output"
+    )
     return parser.parse_args()
 
 
@@ -56,6 +61,7 @@ def main():
         ignore_dir=ignore_dir,
         ignore_file=ignore_file,
         nuke=args.nuke,
-        emoji=args.emoji
+        emoji=args.emoji,
+        quiet=args.quiet
         )
     cleany.main_loop()
