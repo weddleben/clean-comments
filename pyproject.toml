@@ -1,6 +1,6 @@
 [project]
 name = "cleany"
-version = "0.0.4"
+version = "0.0.5"
 description = "A CLI tool to clean up your Python comments"
 readme = "README.md"
 authors = [{name = "Ben Weddle", email = "ben.weddle@gmail.com"}]
@@ -24,7 +24,8 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://pointlessapi.com"
+Repository = "https://github.com/weddleben/cleany"
+Issues = "https://github.com/weddleben/cleany/issues"
 
 [build-system]
 requires = ["setuptools"]

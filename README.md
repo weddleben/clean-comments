@@ -59,7 +59,7 @@ By default Cleany will provide output about the files it's cleaning up.
 $ cleany --nuke
 > ----- scanning comments in /src/main.py -----
 > removing comment from line 85 of /src/main.py
-> removing comment from like 115 of /src/main.py
+> removing comment from line 115 of /src/main.py
 > removed 2 comments from /src/main.py
 ````
 If you want to surpress that output, use `--quiet`:
