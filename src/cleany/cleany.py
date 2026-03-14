@@ -19,6 +19,7 @@ class Cleany(BaseModel):
     quiet: bool = False
     list_of_files: list[Path] = Field(default_factory=list)
     total_emojis_removed: int = 0
+    total_comments_removed: int = 0
 
     def model_post_init(self, __context):
         self.list_of_files = self.create_list_of_files()
@@ -32,6 +33,7 @@ class Cleany(BaseModel):
             return print(f"no files found in {self.path}")
         if self.nuke:
             self.nuke_comments()
+            self.print_to_screen(statement=f"removed {self.total_comments_removed} comments")
         if self.emoji:
             self.remove_emojis()
             self.print_to_screen(f"removed {self.total_emojis_removed} emojis")
@@ -92,6 +94,7 @@ class Cleany(BaseModel):
                         f"removing comment from line {token.start[0]} of {path}"
                     )
                     total_removed += 1
+                    self.total_comments_removed +=1
                     continue
                 else:
                     new_tokens.append(token)
