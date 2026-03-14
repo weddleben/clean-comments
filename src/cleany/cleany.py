@@ -19,7 +19,9 @@ class Cleany(BaseModel):
     quiet: bool = False
     list_of_files: list[Path] = Field(default_factory=list)
     total_emojis_removed: int = 0
+    files_with_emojis_removed: int = 0
     total_comments_removed: int = 0
+    files_with_comments_removed: int = 0
 
     def model_post_init(self, __context):
         self.list_of_files = self.create_list_of_files()
@@ -33,10 +35,14 @@ class Cleany(BaseModel):
             return print(f"no files found in {self.path}")
         if self.nuke:
             self.nuke_comments()
-            self.print_to_screen(statement=f"removed {self.total_comments_removed} comments")
+            self.print_to_screen(
+                statement=f"removed {self.total_comments_removed} comments from {self.files_with_comments_removed} files"
+                )
         if self.emoji:
             self.remove_emojis()
-            self.print_to_screen(f"removed {self.total_emojis_removed} emojis")
+            self.print_to_screen(
+                f"removed {self.total_emojis_removed} emojis from {self.files_with_emojis_removed} files"
+                )
 
     def file_is_skippable(self, file: Path):
         if not file.is_file():
@@ -103,7 +109,8 @@ class Cleany(BaseModel):
                 self.print_to_screen(f"----- no comments found in {path} -----")
                 self.print_to_screen(statement="")
                 continue
-
+            
+            self.files_with_comments_removed += 1
             self.print_to_screen(f"removed {total_removed} comments from {path}")
             new_source = tokenize.untokenize(new_tokens)
             path.write_bytes(new_source)
@@ -131,7 +138,7 @@ class Cleany(BaseModel):
                 continue
 
             self.print_to_screen(statement="")
-
+            self.files_with_emojis_removed += 1
             path.write_text("\n".join(new_tokens))
             if path.suffix == ".py":
                 self.run_ruff(path=path)
