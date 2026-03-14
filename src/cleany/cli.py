@@ -20,8 +20,8 @@ def parse_args():
     )
     parser.add_argument(
         "--ignore-file",
-        type=str,
-        required=False,
+        action="append",
+        default=[],
         help="ignore matching files"
     )
     parser.add_argument(
@@ -53,8 +53,11 @@ def main():
         ignore_dir.append(ignored)
 
     ignore_file = []
-    if args.ignore_file:
-        ignore_file.append(args.ignore_file)
+    for ignored in args.ignore_file:
+        ignore_file.append(ignored)
+
+
+    print(ignore_file)
     
     cleany = Cleany(
         path=args.path,
