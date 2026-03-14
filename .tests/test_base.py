@@ -31,7 +31,7 @@ def test_init_5():
 def test_init_6():
     '''passing in non-existent directory'''
     output = subprocess.run(["cleany", "--path", "doesnt_exist", "--nuke"], capture_output=True)
-    assert "cannot find matchign directory" in str(output.stdout)
+    assert "cannot find matching directory" in str(output.stdout)
 
 def test_init_7(tmp_path):
     '''specifying directory with no matching python files'''
@@ -44,8 +44,8 @@ def test_quiet():
     assert len(str(output)) == 0
 
 def test_remove_emojis_1(tmp_path):
-    pre = Path("tests/fixtures/pre-clean-emojis.py")
-    post = Path("tests/fixtures/post-clean-emojis.py")
+    pre = Path(".tests/fixtures/pre-clean-emojis.py")
+    post = Path(".tests/fixtures/post-clean-emojis.py")
 
     temp: Path = tmp_path / "emoji.py"
     temp.write_text(pre.read_text())
@@ -55,8 +55,8 @@ def test_remove_emojis_1(tmp_path):
     assert temp.read_text() == post.read_text()
 
 def test_nuke_1(tmp_path):
-    pre = Path("tests/fixtures/pre-clean-nuke.py")
-    post = Path("tests/fixtures/post-clean-nuke.py")
+    pre = Path(".tests/fixtures/pre-clean-nuke.py")
+    post = Path(".tests/fixtures/post-clean-nuke.py")
 
     temp: Path = tmp_path / "nuke.py"
     temp.write_text(pre.read_text())
