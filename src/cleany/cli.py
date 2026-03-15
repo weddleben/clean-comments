@@ -15,12 +15,14 @@ def parse_args():
     parser.add_argument(
         "--ignore-dir",
         action="append",
+        type=str,
         default=[],
         help="ignore matching directories"
     )
     parser.add_argument(
         "--ignore-file",
         action="append",
+        type=str,
         default=[],
         help="ignore matching files"
     )
