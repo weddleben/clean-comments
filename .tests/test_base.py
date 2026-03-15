@@ -12,10 +12,15 @@ def test_init_2():
     '''runs...'''
     subprocess.run(["cleany", "--nuke"])
 
-def test_init_invalid_arg_1():
-    '''wrong type passed to path. should be str'''
-    with pytest.raises(Exception):
-        subprocess.run(["cleany", "--path", 2])
+def test_invalid_arg_1():
+    '''no value passed to --ignore-dir'''
+    output = subprocess.run(["cleany", "--ignore-dir"], capture_output=True)
+    assert output.returncode != 0
+
+def test_invalid_arg_2():
+    '''no value passed to --ignore-file'''
+    output = subprocess.run(["cleany", "--ignore-file"], capture_output=True)
+    assert output.returncode != 0
 
 def test_no_mod_commands_1():
     '''if no modification commands passed (emoji, nuke, etc)'''
