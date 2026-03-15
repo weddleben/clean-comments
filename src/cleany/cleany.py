@@ -9,14 +9,17 @@ from pydantic import BaseModel, Field
 grapheme_pattern = regex.compile(r"\X", regex.UNICODE)
 emoji_pattern = regex.compile(r"\p{Extended_Pictographic}")
 
-
-class Cleany(BaseModel):
+class CleanyCLIArgs(BaseModel):
     path: Path
     ignore_dir: list = Field(default_factory=list)
     ignore_file: list = Field(default_factory=list)
     nuke: bool = False
     emoji: bool = False
     quiet: bool = False
+
+
+class Cleany(BaseModel):
+    args: CleanyCLIArgs
     list_of_files: list[Path] = Field(default_factory=list)
     total_emojis_removed: int = 0
     files_with_emojis_removed: int = 0
@@ -27,18 +30,18 @@ class Cleany(BaseModel):
         self.list_of_files = self.create_list_of_files()
 
     def main_loop(self):
-        if not any([self.nuke, self.emoji]):
+        if not any([self.args.nuke, self.args.emoji]):
             return print("no modification commands")
-        if not self.path.exists():
-            return print(f"cannot find matching directory: {self.path}")
+        if not self.args.path.exists():
+            return print(f"cannot find matching directory: {self.args.path}")
         if len(self.list_of_files) == 0:
-            return print(f"no files found in {self.path}")
-        if self.nuke:
+            return print(f"no files found in {self.args.path}")
+        if self.args.nuke:
             self.nuke_comments()
             self.print_to_screen(
                 statement=f"removed {self.total_comments_removed} comments from {self.files_with_comments_removed} files"
                 )
-        if self.emoji:
+        if self.args.emoji:
             self.remove_emojis()
             self.print_to_screen(
                 f"removed {self.total_emojis_removed} emojis from {self.files_with_emojis_removed} files"
@@ -51,9 +54,9 @@ class Cleany(BaseModel):
             return True
         if str(file).endswith(".pyc"):
             return True
-        if any(part in self.ignore_dir for part in file.parent.parts):
+        if any(part in self.args.ignore_dir for part in file.parent.parts):
             return True
-        if any(str(file).endswith(to_ignore) for to_ignore in self.ignore_file):
+        if any(str(file).endswith(to_ignore) for to_ignore in self.args.ignore_file):
             return True
         if self.is_not_utf8(file=file):
             return True
@@ -70,15 +73,15 @@ class Cleany(BaseModel):
             return True
 
     def create_list_of_files(self) -> list[Path]:
-        self.print_to_screen(statement=f"----- Scanning files in {self.path.absolute()} -----")
+        self.print_to_screen(statement=f"----- Scanning files in {self.args.path.absolute()} -----")
         list_of_files: list = []
-        for file in self.path.rglob("*"):
+        for file in self.args.path.rglob("*"):
             if self.file_is_skippable(file):
                 continue
             else:
                 list_of_files.append(file)
         number_of_files: int = len(list_of_files)
-        self.print_to_screen(statement=f"----- found {number_of_files} valid files in {self.path.absolute()} -----")
+        self.print_to_screen(statement=f"----- found {number_of_files} valid files in {self.args.path.absolute()} -----")
         return list_of_files
 
     def nuke_comments(self):
@@ -168,5 +171,5 @@ class Cleany(BaseModel):
         subprocess.run(["ruff", "format", "--silent", str(path)], check=True)
 
     def print_to_screen(self, statement):
-        if not self.quiet:
+        if not self.args.quiet:
             print(statement)

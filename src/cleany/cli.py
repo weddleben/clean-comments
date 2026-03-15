@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 import sys
 
-from cleany.cleany import Cleany
+from cleany.cleany import Cleany, CleanyCLIArgs
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Cleany", allow_abbrev=False)
@@ -66,13 +66,15 @@ def main():
     ignore_file = []
     for ignored in args.ignore_file:
         ignore_file.append(ignored)
-    
-    cleany = Cleany(
+
+    cleany_args = CleanyCLIArgs(
         path=args.path,
         ignore_dir=ignore_dir,
         ignore_file=ignore_file,
         nuke=args.nuke,
         emoji=args.emoji,
         quiet=args.quiet
-        )
+    )
+    
+    cleany = Cleany(args=cleany_args)
     cleany.main_loop()
