@@ -12,47 +12,59 @@ def test_init_2():
     '''runs...'''
     subprocess.run(["cleany", "--nuke"])
 
-def test_init_3():
+def test_init_invalid_arg_1():
     '''wrong type passed to path. should be str'''
     with pytest.raises(Exception):
         subprocess.run(["cleany", "--path", 2])
 
-def test_init_4():
+def test_no_mod_commands_1():
     '''if no modification commands passed (emoji, nuke, etc)'''
     output = subprocess.run(["cleany", "--path", "some_dir"], capture_output=True)
     assert "no modification commands" in str(output.stdout)
 
-def test_init_5():
+def test_no_mod_commands_2():
     '''if no modification commands passed (emoji, nuke, etc)'''
     output = subprocess.run(["cleany", "--ignore-dir", "some_dir"], capture_output=True)
     assert "no modification commands" in str(output.stdout)
 
-def test_init_6():
+def test_dir_not_exist():
     '''passing in non-existent directory'''
     output = subprocess.run(["cleany", "--path", "doesnt_exist", "--nuke"], capture_output=True)
     assert "cannot find matching directory" in str(output.stdout)
 
-def test_init_7(tmp_path):
-    '''specifying directory with no matching python files'''
+def test_emoty_dir_1(tmp_path):
+    '''specifying directory with no matching files'''
     output = subprocess.run(["cleany", "--path", tmp_path, "--nuke"], capture_output=True)
     assert "no files found in" in str(output.stdout)
 
-def test_init_8():
-    '''runs...'''
+def test_empty_dir_2(tmp_path):
+    '''specifying directory with no matching files'''
+    output = subprocess.run(["cleany", "--path", tmp_path, "--emoji"], capture_output=True)
+    assert "no files found in" in str(output.stdout)
+
+def test_expected_output_1():
+    '''correct feedback is in the terminal output'''
     output = subprocess.run(["cleany", "--emoji"], capture_output=True)
     expected: list = ["removed", "emojis", "from", "files"]
     for segment in expected:
         assert segment in str(output.stdout)
 
-def test_init_9():
-    '''runs...'''
+def test_expected_output_2():
+    '''correct feedback is in the terminal output'''
     output = subprocess.run(["cleany", "--nuke"], capture_output=True)
     expected: list = ["removed", "comments", "from", "files"]
     for segment in expected:
         assert segment in str(output.stdout)
 
-def test_quiet():
+def test_quiet_1():
+    '''should be nothing in the terminal output if --quiet is passed'''
     output = subprocess.run(["cleany", "--nuke", "--quiet"], capture_output=True)
+    output = str(output.stdout).strip("b''")
+    assert len(str(output)) == 0
+
+def test_quiet_2():
+    '''should be nothing in the terminal output if --quiet is passed'''
+    output = subprocess.run(["cleany", "--emoji", "--quiet"], capture_output=True)
     output = str(output.stdout).strip("b''")
     assert len(str(output)) == 0
 
