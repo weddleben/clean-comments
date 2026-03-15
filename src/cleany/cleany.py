@@ -6,9 +6,6 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-grapheme_pattern = regex.compile(r"\X", regex.UNICODE)
-emoji_pattern = regex.compile(r"\p{Extended_Pictographic}")
-
 class CleanyCLIArgs(BaseModel):
     path: Path
     ignore_dir: list = Field(default_factory=list)
@@ -153,10 +150,11 @@ class Cleany(BaseModel):
             if path.suffix == ".py":
                 self.run_ruff(path=path)
 
-    def replace_emojis_in_comment(
-        self, path: Path, text: str, replacement: str = ""
-    ) -> str:
+    def replace_emojis_in_comment(self, path: Path, text: str, replacement: str = "") -> str:
+        grapheme_pattern = regex.compile(r"\X", regex.UNICODE)
+        emoji_pattern = regex.compile(r"\p{Extended_Pictographic}")
         graphemes = grapheme_pattern.findall(text)
+        
         new_parts = []
         for g in graphemes:
             if emoji_pattern.search(g):
