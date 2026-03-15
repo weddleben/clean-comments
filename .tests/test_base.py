@@ -22,6 +22,16 @@ def test_invalid_arg_2():
     output = subprocess.run(["cleany", "--ignore-file"], capture_output=True)
     assert output.returncode != 0
 
+def test_invalid_arg_3():
+    '''--nuke does not accept a value. It's a boolean'''
+    output = subprocess.run(["cleany", "--nuke", "hahah"])
+    assert output.returncode != 0
+
+def test_invalid_arg_4():
+    '''--emoji does not accept a value. It's a boolean'''
+    output = subprocess.run(["cleany", "--emoji", "hahah"])
+    assert output.returncode != 0
+
 def test_no_mod_commands_1():
     '''if no modification commands passed (emoji, nuke, etc)'''
     output = subprocess.run(["cleany", "--path", "some_dir"], capture_output=True)
@@ -46,6 +56,16 @@ def test_empty_dir_2(tmp_path):
     '''specifying directory with no matching files'''
     output = subprocess.run(["cleany", "--path", tmp_path, "--emoji"], capture_output=True)
     assert "no files found in" in str(output.stdout)
+
+
+def test_dir_without_python_files_1(tmp_path):
+    '''specifying directory with files but no python files. should scan and find files, 
+    but report that there are no python files when used with --nuke'''
+    sample_text = "some sample text here"
+    temp: Path = tmp_path / "del.txt"
+    temp.write_text(sample_text)
+    output = subprocess.run(["cleany", "--nuke", "--path", tmp_path], capture_output=True)
+    assert "found 0 Python files" in str(output.stdout)
 
 def test_expected_output_1():
     '''correct feedback is in the terminal output'''
